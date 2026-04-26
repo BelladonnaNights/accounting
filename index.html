@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Belladonna Finance Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg:        #0f0f11;
+  --bg2:       #17171b;
+  --bg3:       #1e1e24;
+  --bg4:       #26262e;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --text:      #f0efe8;
+  --text2:     #9898a0;
+  --text3:     #5a5a65;
+  --teal:      #1cc98a;
+  --teal2:     #0f7a53;
+  --teal-bg:   rgba(28,201,138,0.1);
+  --amber:     #f5a623;
+  --amber-bg:  rgba(245,166,35,0.1);
+  --red:       #e05252;
+  --red-bg:    rgba(224,82,82,0.1);
+  --blue:      #5b9cf6;
+  --blue-bg:   rgba(91,156,246,0.1);
+  --pink:      #e06bad;
+  --pink-bg:   rgba(224,107,173,0.1);
+  --purple:    #9b7cf5;
+  --purple-bg: rgba(155,124,245,0.1);
+  --font:      'DM Sans', sans-serif;
+  --mono:      'DM Mono', monospace;
+  --radius:    12px;
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top bar ── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; height: 56px;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-brand { display: flex; align-items: center; gap: 10px; }
+.topbar-logo {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--teal), var(--blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; color: #fff;
+}
+.topbar-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+.topbar-name span { color: var(--teal); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.sync-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text3); font-family: var(--mono);
+  padding: 4px 10px; border-radius: 20px; background: var(--bg3);
+  border: 1px solid var(--border);
+}
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); }
+.sync-dot.live { background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: pulse 2s infinite; }
+.sync-dot.syncing { background: var(--amber); animation: pulse 0.5s infinite; }
+.sync-dot.error { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.sheets-btn {
+  display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border-radius: var(--radius-sm); background: var(--bg3); border: 1px solid var(--border2);
+  color: var(--text2); font-size: 11px; font-family: var(--font); cursor: pointer;
+  text-decoration: none; transition: all .15s;
+}
+.sheets-btn:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+.sheets-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ── Nav ── */
+.nav {
+  display: flex; gap: 2px; padding: 0 28px;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-btn {
+  padding: 12px 16px; border: none; background: transparent;
+  color: var(--text3); font-size: 13px; font-family: var(--font);
+  cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent;
+  transition: all .15s; border-radius: 0;
+}
+.nav-btn:hover { color: var(--text2); }
+.nav-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+/* ── Main layout ── */
+.main { flex: 1; padding: 28px; max-width: 1200px; width: 100%; margin: 0 auto; }
+.tab { display: none; }
+.tab.active { display: block; }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 16px;
+}
+.card-title {
+  font-size: 11px; font-weight: 500; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 16px;
+}
+
+/* ── Metric grid ── */
+.metric-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 12px; margin-bottom: 20px; }
+.metric {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px;
+}
+.metric-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+.metric-val { font-size: 24px; font-weight: 600; letter-spacing: -.03em; color: var(--text); }
+.metric-val.teal { color: var(--teal); }
+.metric-val.red { color: var(--red); }
+.metric-val.amber { color: var(--amber); }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; padding: 0 12px 10px;
+  font-size: 10px; font-weight: 500; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text3);
+  border-bottom: 1px solid var(--border);
+}
+td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg3); }
+.tr-total td { background: var(--bg3); font-weight: 600; border-top: 1px solid var(--border2); border-bottom: none; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex; align-items: center; padding: 2px 8px;
+  border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap;
+}
+.badge-teal  { background: var(--teal-bg);   color: var(--teal); }
+.badge-amber { background: var(--amber-bg);  color: var(--amber); }
+.badge-red   { background: var(--red-bg);    color: var(--red); }
+.badge-blue  { background: var(--blue-bg);   color: var(--blue); }
+.badge-pink  { background: var(--pink-bg);   color: var(--pink); }
+.badge-purple{ background: var(--purple-bg); color: var(--purple); }
+.badge-gray  { background: var(--bg4);       color: var(--text2); }
+
+/* ── Forms ── */
+.form-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.form-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.form-label { font-size: 11px; color: var(--text3); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: .04em; }
+input[type=text], input[type=number], input[type=date], select, textarea {
+  width: 100%; padding: 9px 12px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-size: 13px; font-family: var(--font);
+  transition: border-color .15s; outline: none;
+}
+input:focus, select:focus { border-color: var(--teal); }
+select option { background: var(--bg3); }
+input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--teal); cursor: pointer; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2); margin-bottom: 14px; cursor: pointer; }
+
+/* ── Buttons ── */
+.btn {
+  padding: 9px 20px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--text2); font-size: 13px; font-family: var(--font);
+  cursor: pointer; transition: all .15s;
+}
+.btn:hover { background: var(--bg3); color: var(--text); }
+.btn-primary { background: var(--teal); color: #0a2e1f; border-color: var(--teal); font-weight: 600; }
+.btn-primary:hover { background: #22e09a; border-color: #22e09a; color: #0a2e1f; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-export { background: var(--bg3); color: var(--teal); border-color: var(--teal2); }
+.btn-export:hover { background: var(--teal-bg); }
+
+/* ── Alerts ── */
+.alert { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; border-left: 3px solid; }
+.alert-amber { background: var(--amber-bg); color: var(--amber); border-color: var(--amber); }
+.alert-red   { background: var(--red-bg);   color: var(--red);   border-color: var(--red); }
+.alert-teal  { background: var(--teal-bg);  color: var(--teal);  border-color: var(--teal); }
+
+/* ── Progress bar ── */
+.prog-wrap { height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden; margin: 8px 0; }
+.prog { height: 100%; border-radius: 3px; background: var(--teal); transition: width .5s; }
+
+/* ── Charts ── */
+.chart-wrap { position: relative; width: 100%; height: 220px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media(max-width:640px){ .two-col { grid-template-columns: 1fr; } .form-grid,.form-grid3 { grid-template-columns: 1fr; } }
+
+/* ── Month filter pills ── */
+.month-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.pill {
+  padding: 5px 14px; border-radius: 20px; font-size: 12px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text3); cursor: pointer; transition: all .15s;
+}
+.pill:hover { border-color: var(--border2); color: var(--text2); }
+.pill.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+
+/* ── P&L rows ── */
+.pl-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.pl-row.section { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); background: var(--bg3); padding: 6px 12px; margin: 8px -12px; border-bottom: none; }
+.pl-row.bold { font-weight: 600; }
+.pl-row.total { background: var(--bg3); padding: 12px; border-radius: var(--radius-sm); border: none; margin-top: 8px; font-weight: 600; font-size: 15px; }
+.pl-row.indent { padding-left: 20px; color: var(--text2); }
+.pl-row:last-child { border-bottom: none; }
+.pl-cols { display: grid; grid-template-columns: 2fr repeat(5,1fr); gap: 0; }
+.pl-head { font-size: 11px; color: var(--text3); text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--border2); }
+.pl-head:first-child { text-align: left; }
+.pl-cell { text-align: right; padding: 8px 6px; font-size: 13px; font-family: var(--mono); border-bottom: 1px solid var(--border); }
+.pl-cell:first-child { text-align: left; font-family: var(--font); }
+.pl-cell.bold { font-weight: 600; }
+.pl-cell.teal { color: var(--teal); }
+.pl-cell.red { color: var(--red); }
+.pl-cell.section-bg { background: var(--bg3); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); padding: 6px; }
+
+/* ── Loading overlay ── */
+#loading {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; gap: 16px;
+}
+.loading-logo { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg,var(--teal),var(--blue)); display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff; }
+.loading-text { font-size: 13px; color: var(--text3); font-family: var(--mono); }
+.loading-bar { width: 160px; height: 2px; background: var(--bg3); border-radius: 1px; overflow: hidden; }
+.loading-bar-fill { height: 100%; width: 0%; background: var(--teal); border-radius: 1px; transition: width .4s; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loading-logo">B</div>
+  <div class="loading-text" id="loading-msg">Connecting to Firebase...</div>
+  <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar"></div></div>
+</div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">B</div>
+    <div class="topbar-name">Belladonna <span>Finance Hub</span></div>
+  </div>
+  <div class="topbar-right">
+    <div class="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">Connecting...</span>
+    </div>
+    <a class="sheets-btn" href="https://docs.google.com/spreadsheets/d/1p_lnBeqOMhh3TKj6N8ZHFM7GVca1gstajkHLpPu_hyU/edit" target="_blank">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Open Sheet
+    </a>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" data-tab="dashboard">Dashboard</button>
+  <button class="nav-btn" data-tab="events">Event Log</button>
+  <button class="nav-btn" data-tab="host-pay">Host Pay</button>
+  <button class="nav-btn" data-tab="venue-income">Venue Income</button>
+  <button class="nav-btn" data-tab="bills">Bills</button>
+  <button class="nav-btn" data-tab="expenses">Tax & Expenses</button>
+  <button class="nav-btn" data-tab="pl">P&L</button>
+  <button class="nav-btn" data-tab="add">+ Add Event</button>
+</nav>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="tab active" id="tab-dashboard">
+  <div id="dash-alerts"></div>
+  <div class="metric-row" id="dash-metrics"></div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Monthly income vs profit</div>
+      <div class="chart-wrap"><canvas id="incomeChart" aria-label="Monthly income bar chart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">April — host pay distribution</div>
+      <div class="chart-wrap"><canvas id="hostChart" aria-label="Host pay doughnut chart"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Pending / unpaid events</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Venue</th><th>Type</th><th>Host</th><th>Venue pays us</th><th>We pay host</th><th>Status</th></tr></thead>
+      <tbody id="dash-unpaid"></tbody></table>
+    </div>
+  </div>
+  <div class="card" id="dash-snap-card">
+    <div class="card-title">April profit snapshot</div>
+    <div id="dash-snap"></div>
+  </div>
+</div>
+
+<!-- EVENT LOG -->
+<div class="tab" id="tab-events">
+  <div class="month-pills" id="ev-months"></div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;gap:8px;">
+    <button class="btn btn-export btn-sm" onclick="exportCSV('events')">Export CSV</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Venue</th><th>City</th><th>Type</th><th>Host</th><th>Tier</th><th>Venue pays us</th><th>We pay host</th><th>Profit</th><th>Paid?</th></tr></thead>
+        <tbody id="ev-table"></tbody>
+        <tfoot><tr class="tr-total" id="ev-total"></tr></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- HOST PAY -->
+<div class="tab" id="tab-host-pay">
+  <div class="metric-row" id="hp-metrics"></div>
+  <div class="card">
+    <div class="card-title">April 2026 — host summary</div>
+    <table><thead><tr><th>Host</th><th>Events</th><th>Total owed</th><th>Paid</th><th>Balance</th><th>Method</th></tr></thead>
+    <tbody id="hp-summary"></tbody></table>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="card-title">Per-event detail — April</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Host</th><th>Venue</th><th>Type</th><th>Pay</th><th>Tier</th><th>Status</th><th>Check #</th></tr></thead>
+      <tbody id="hp-detail"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- VENUE INCOME -->
+<div class="tab" id="tab-venue-income">
+  <div class="metric-row" id="vi-metrics"></div>
+  <div class="card">
+    <div class="card-title">Venue revenue — April 2026</div>
+    <table><thead><tr><th>Venue</th><th>City</th><th>Events</th><th>We receive</th><th>We pay host</th><th>Our profit</th><th>Schedule</th></tr></thead>
+    <tbody id="vi-table"></tbody></table>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="card-title">Deposit log — payments received from venues</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Venue</th><th>Amount</th><th>Status</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="vi-deposits"></tbody></table>
+    </div>
+    <div style="display:grid;grid-template-columns:140px 160px 100px 1fr auto;gap:8px;margin-top:14px;align-items:end;">
+      <div><label class="form-label">Date</label><input type="date" id="dp-date"/></div>
+      <div><label class="form-label">Venue</label>
+        <select id="dp-venue"><option>Action</option><option>The Coaster</option><option>The Forum</option><option>McMillins Farm</option></select>
+      </div>
+      <div><label class="form-label">Amount ($)</label><input type="number" id="dp-amt" placeholder="0"/></div>
+      <div><label class="form-label">Notes</label><input type="text" id="dp-notes" placeholder="Optional"/></div>
+      <button class="btn btn-primary btn-sm" onclick="addDeposit()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- BILLS -->
+<div class="tab" id="tab-bills">
+  <div class="metric-row" id="bi-metrics"></div>
+  <div class="card">
+    <div class="card-title">Monthly subscriptions</div>
+    <table><thead><tr><th>Service</th><th>Cost/mo</th><th>Due</th><th>Category</th><th>Notes</th><th></th></tr></thead>
+    <tbody id="bi-table"></tbody>
+    <tfoot><tr class="tr-total"><td>Monthly total</td><td id="bi-total-val"></td><td colspan="4"></td></tr></tfoot>
+    </table>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="card-title">Add bill</div>
+    <div class="form-grid3">
+      <div><label class="form-label">Service name</label><input type="text" id="bi-name" placeholder="e.g. Spotify"/></div>
+      <div><label class="form-label">Monthly cost ($)</label><input type="number" id="bi-cost" placeholder="0.00"/></div>
+      <div><label class="form-label">Due date</label><input type="text" id="bi-due" placeholder="e.g. 15th"/></div>
+    </div>
+    <div class="form-grid">
+      <div><label class="form-label">Category</label>
+        <select id="bi-cat"><option>Karaoke Software</option><option>Bingo Software</option><option>Marketing</option><option>Web & Hosting</option><option>Finance Tools</option><option>AI Tools</option><option>Other</option></select>
+      </div>
+      <div><label class="form-label">Notes</label><input type="text" id="bi-notes" placeholder="Optional"/></div>
+    </div>
+    <button class="btn btn-primary" onclick="addBill()">Add bill</button>
+  </div>
+</div>
+
+<!-- EXPENSES -->
+<div class="tab" id="tab-expenses">
+  <div class="metric-row" id="ex-metrics"></div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+    <button class="btn btn-export btn-sm" onclick="exportCSV('expenses')">Export CSV</button>
+  </div>
+  <div class="card" style="padding-bottom:0">
+    <div class="card-title">Business expense log</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="exp-cat-pills"></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Deductible</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="ex-table"></tbody>
+      <tfoot><tr class="tr-total" id="ex-total"></tr></tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Add expense</div>
+    <div class="form-grid3">
+      <div><label class="form-label">Date</label><input type="date" id="ex-date"/></div>
+      <div><label class="form-label">Description</label><input type="text" id="ex-desc" placeholder="e.g. Wireless mic"/></div>
+      <div><label class="form-label">Amount ($)</label><input type="number" id="ex-amt" placeholder="0.00"/></div>
+    </div>
+    <div class="form-grid">
+      <div><label class="form-label">Category</label>
+        <select id="ex-cat"><option>Equipment</option><option>Travel</option><option>Supplies</option><option>Marketing</option><option>Software</option><option>Meals</option><option>Other</option></select>
+      </div>
+      <label class="checkbox-row" style="padding-top:20px"><input type="checkbox" id="ex-ded" checked/> Tax deductible</label>
+    </div>
+    <div style="margin-bottom:14px"><label class="form-label">Notes / receipt #</label><input type="text" id="ex-notes" placeholder="Optional"/></div>
+    <button class="btn btn-primary" onclick="addExpense()">Add expense</button>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Estimated tax liability</div>
+    <div id="ex-tax"></div>
+  </div>
+</div>
+
+<!-- P&L -->
+<div class="tab" id="tab-pl">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div class="metric-row" id="pl-metrics" style="margin-bottom:0;flex:1;margin-right:12px;"></div>
+    <button class="btn btn-export btn-sm" onclick="exportCSV('pl')">Export CSV</button>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Profit & loss statement</div>
+      <div class="pl-cols" id="pl-head-row"></div>
+      <div id="pl-rows"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Net profit by month</div>
+      <div class="chart-wrap" style="height:260px"><canvas id="plChart" aria-label="Net profit by month"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EVENT -->
+<div class="tab" id="tab-add">
+  <div class="card">
+    <div class="card-title">Log a new event</div>
+    <div class="form-grid">
+      <div><label class="form-label">Event date</label><input type="date" id="ae-date"/></div>
+      <div><label class="form-label">Venue</label>
+        <select id="ae-venue" onchange="onVenueChange()">
+          <option>Action</option><option>The Coaster</option><option>The Forum</option><option>McMillins Farm</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div><label class="form-label">Venue city</label><input type="text" id="ae-city" value="Sumner"/></div>
+      <div><label class="form-label">Event type</label>
+        <select id="ae-type">
+          <option>Music Bingo</option><option>Karaoke</option><option>Book Trivia</option>
+          <option>Sing-Along</option><option>Karaoke - Private Hire</option><option>Book Trivia - Chart Topper</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div><label class="form-label">Host</label>
+        <select id="ae-host"><option>Miguel</option><option>Eddy</option><option>Ahnna</option></select>
+      </div>
+      <div><label class="form-label">Pay tier</label>
+        <select id="ae-tier" onchange="onTierChange()">
+          <option value="75">Bingo $75</option><option value="100">Beginner $100</option><option value="150">Featured $150</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div><label class="form-label">Venue pays us ($)</label><input type="number" id="ae-fee" value="150"/></div>
+      <div><label class="form-label">We pay host ($)</label><input type="number" id="ae-hostpay" value="75"/></div>
+    </div>
+    <div class="form-grid">
+      <div><label class="form-label">Payment method</label>
+        <select id="ae-method"><option>Cash</option><option>Check</option><option>Venmo</option><option>Zelle</option></select>
+      </div>
+      <div><label class="form-label">Check # (if applicable)</label><input type="text" id="ae-check" placeholder="——"/></div>
+    </div>
+    <label class="checkbox-row"><input type="checkbox" id="ae-paid"/> Mark as paid (venue has paid us)</label>
+    <button class="btn btn-primary" onclick="addEvent()" style="margin-top:4px">Log event →</button>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="card-title">Pay tier quick reference</div>
+    <table><thead><tr><th>Venue</th><th>Pays us</th><th>Schedule</th><th>Karaoke</th><th>Bingo</th><th>Book Trivia</th></tr></thead>
+    <tbody>
+      <tr><td>Action</td><td><span class="badge badge-blue">End of month</span></td><td>Once/mo</td><td>—</td><td>$150</td><td>—</td></tr>
+      <tr><td>The Coaster</td><td><span class="badge badge-teal">Per gig</span></td><td>Per gig</td><td>$150</td><td>$150</td><td>$200</td></tr>
+      <tr><td>The Forum</td><td><span class="badge badge-teal">Per gig</span></td><td>Per gig</td><td>—</td><td>—</td><td>$200</td></tr>
+      <tr><td>McMillins Farm</td><td><span class="badge badge-teal">Per gig</span></td><td>Per gig</td><td>$150</td><td>—</td><td>—</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+</main>
+
+<!-- Firebase + App Logic -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, setDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCVBkE8XsmZ-dIXrQ4j8IKBq0jT0RxMZgI",
+  authDomain: "belladonna-accounting.firebaseapp.com",
+  projectId: "belladonna-accounting",
+  storageBucket: "belladonna-accounting.firebasestorage.app",
+  messagingSenderId: "736650137259",
+  appId: "1:736650137259:web:a29473f097ea39d9f171ee"
+};
+
+const SHEET_ID   = '1p_lnBeqOMhh3TKj6N8ZHFM7GVca1gstajkHLpPu_hyU';
+const SHEETS_KEY = 'AIzaSyACMjXQCXjVo75hbMXtag_JctR4SoX70So';
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── State ──────────────────────────────────────────────────────────────
+let events   = [];
+let bills    = [];
+let expenses = [];
+let deposits = [];
+let evMonth  = 'April 2026';
+let expCat   = 'All';
+let currentTab = 'dashboard';
+let syncTimer  = null;
+
+// ── Loading progress ───────────────────────────────────────────────────
+const loadBar = document.getElementById('loading-bar');
+const loadMsg = document.getElementById('loading-msg');
+let loadPct = 0;
+function setLoad(pct, msg) {
+  loadPct = pct; loadBar.style.width = pct + '%';
+  if (msg) loadMsg.textContent = msg;
+}
+
+// ── Sync status ────────────────────────────────────────────────────────
+function setSyncStatus(state, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot' + (state ? ' ' + state : '');
+  lbl.textContent = label;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────
+const fmt  = (n, dec=0) => { const v = Math.round(parseFloat(n || 0)*100)/100; return (v < 0 ? '-$' : '$') + Math.abs(v).toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g,','); };
+const fmtD = n => fmt(n, 2);
+const getMonth = d => { try { const dt = new Date(d + 'T00:00'); return dt.toLocaleString('default',{month:'long',year:'numeric'}); } catch { return ''; } };
+const dt   = d => { try { return new Date(d + 'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); } catch { return d; } };
+const months = () => [...new Set(events.map(e => getMonth(e.date)).filter(Boolean))];
+
+function venueColor(v) {
+  if (v==='Action') return 'badge-blue';
+  if (v==='The Forum') return 'badge-pink';
+  if (v==='McMillins Farm') return 'badge-purple';
+  return 'badge-teal';
+}
+
+// ── Google Sheets sync ─────────────────────────────────────────────────
+async function syncToSheets() {
+  if (!SHEETS_KEY) return;
+  setSyncStatus('syncing','Syncing to Sheets...');
+  try {
+    // Build Event Log values
+    const evRows = [
+      ['Event Date','Venue','Venue City','Event Type','Host','Pay Tier','Venue Pays Us ($)','We Pay Host ($)','Our Profit ($)','Payment Status','Method','Check #'],
+      ...events.sort((a,b)=>a.date.localeCompare(b.date)).map(e => [
+        e.date, e.venue, e.city, e.type, e.host, e.tier,
+        e.fee, e.hostPay, e.fee - e.hostPay,
+        e.paid ? 'Paid' : 'Pending', e.method || '', e.check || ''
+      ])
+    ];
+    // Build Bills values
+    const billRows = [
+      ['Service','Monthly Cost ($)','Due Date','Category','Notes'],
+      ...bills.map(b => [b.name, b.cost, b.due, b.cat, b.notes || ''])
+    ];
+    // Build Expenses values
+    const expRows = [
+      ['Date','Description','Category','Amount ($)','Tax Deductible?','Notes'],
+      ...expenses.map(e => [e.date, e.desc, e.cat, e.amount, e.deductible ? 'Yes' : 'No', e.notes || ''])
+    ];
+    // Build Deposits values
+    const depRows = [
+      ['Date Received','Venue','Amount ($)','Status','Notes'],
+      ...deposits.map(d => [d.date, d.venue, d.amount, d.received ? 'Received' : 'Pending', d.notes || ''])
+    ];
+
+    const body = {
+      valueInputOption: 'USER_ENTERED',
+      data: [
+        { range: 'Event Log!A3', values: evRows },
+        { range: 'Operations Bills!A3', values: billRows },
+        { range: 'Expenses!A5', values: expRows },
+        { range: 'Venue Income!A5', values: depRows },
+      ]
+    };
+
+    const res = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchUpdate?key=${SHEETS_KEY}`,
+      { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }
+    );
+    if (res.ok) {
+      setSyncStatus('live', 'Synced · ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+    } else {
+      const err = await res.json();
+      console.warn('Sheets sync error:', err);
+      setSyncStatus('error','Sheet sync failed');
+    }
+  } catch(e) {
+    console.warn('Sheets sync error:', e);
+    setSyncStatus('error','Offline');
+  }
+}
+
+function scheduleSheetsSync() {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncToSheets, 1500);
+}
+
+// ── Firebase listeners ─────────────────────────────────────────────────
+function listenCollection(name, setter, onReady) {
+  return onSnapshot(collection(db, name), snap => {
+    setter(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    onReady && onReady();
+    renderAll();
+  }, err => { console.error(name, err); });
+}
+
+// ── Seed data (first run only) ─────────────────────────────────────────
+const SEED_EVENTS = [
+  {date:'2026-01-08',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-01-15',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-01-18',venue:'The Coaster',city:'Puyallup',type:'Sing-Along',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-01-22',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-01-29',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-02-05',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-02-10',venue:'The Coaster',city:'Puyallup',type:'Sing-Along',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-02-12',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-02-18',venue:'The Forum',city:'Puyallup',type:'Sing-Along',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-02-19',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-02-20',venue:'McMillins Farm',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-02-26',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-03-03',venue:'Action',city:'Sumner',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:true,method:'Cash',check:''},
+  {date:'2026-03-05',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-03-10',venue:'Action',city:'Sumner',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:true,method:'Cash',check:''},
+  {date:'2026-03-17',venue:'Action',city:'Sumner',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:true,method:'Cash',check:''},
+  {date:'2026-03-18',venue:'The Coaster',city:'Puyallup',type:'Book Trivia',host:'Eddy',tier:'Beginner $100',fee:200,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-03-19',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-03-24',venue:'Action',city:'Sumner',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:true,method:'Cash',check:''},
+  {date:'2026-03-25',venue:'The Forum',city:'Puyallup',type:'Book Trivia',host:'Eddy',tier:'Beginner $100',fee:200,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-03-26',venue:'The Coaster',city:'Puyallup',type:'Sing-Along - Bad Bunny',host:'Eddy',tier:'Beginner $100',fee:200,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-03-27',venue:'The Coaster',city:'Puyallup',type:'Karaoke - Private Hire',host:'Ahnna',tier:'Beginner $100',fee:150,hostPay:150,paid:true,method:'Cash',check:''},
+  {date:'2026-03-31',venue:'Action',city:'Sumner',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:true,method:'Check',check:'1021'},
+  {date:'2026-04-07',venue:'Action',city:'Sumner',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:true,method:'Check',check:'1061'},
+  {date:'2026-04-09',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-04-13',venue:'The Coaster',city:'Puyallup',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:false,method:'',check:''},
+  {date:'2026-04-14',venue:'Action',city:'Sumner',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:true,method:'Check',check:'1063'},
+  {date:'2026-04-16',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-04-20',venue:'The Coaster',city:'Puyallup',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:true,method:'Check',check:'1026'},
+  {date:'2026-04-21',venue:'Action',city:'Sumner',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:true,method:'Check',check:'1064'},
+  {date:'2026-04-22',venue:'The Forum',city:'Puyallup',type:'Book Trivia - Chart Topper',host:'Eddy',tier:'Beginner $100',fee:200,hostPay:100,paid:false,method:'',check:''},
+  {date:'2026-04-23',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:true,method:'Cash',check:''},
+  {date:'2026-04-27',venue:'The Coaster',city:'Puyallup',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:false,method:'',check:''},
+  {date:'2026-04-28',venue:'Action',city:'Sumner',type:'Music Bingo',host:'Miguel',tier:'Bingo $75',fee:150,hostPay:75,paid:false,method:'',check:''},
+  {date:'2026-04-30',venue:'The Coaster',city:'Puyallup',type:'Karaoke',host:'Eddy',tier:'Beginner $100',fee:150,hostPay:100,paid:false,method:'',check:''},
+];
+const SEED_BILLS = [
+  {name:'Karafun - Ahnna',cost:49,due:'1st',cat:'Karaoke Software',notes:''},
+  {name:'Google Workspace',cost:55.65,due:'2nd',cat:'Web & Hosting',notes:''},
+  {name:'Karafun - BDComp #1',cost:49,due:'10th',cat:'Karaoke Software',notes:''},
+  {name:'Canva',cost:44.16,due:'16th',cat:'Marketing',notes:''},
+  {name:'Buffer',cost:13.25,due:'19th',cat:'Marketing',notes:''},
+  {name:'Wix',cost:50.78,due:'25th',cat:'Web & Hosting',notes:''},
+  {name:'Quicken',cost:9.99,due:'30th',cat:'Finance Tools',notes:''},
+  {name:'Claude',cost:20,due:'?',cat:'AI Tools',notes:''},
+];
+const SEED_EXPENSES = [
+  {date:'2026-01-15',desc:'Wireless microphone',cat:'Equipment',amount:89,deductible:true,notes:'Receipt #1042'},
+  {date:'2026-02-03',desc:'Fuel - Puyallup gigs',cat:'Travel',amount:45,deductible:true,notes:''},
+  {date:'2026-02-20',desc:'Bingo cards & supplies',cat:'Supplies',amount:32,deductible:true,notes:''},
+  {date:'2026-03-10',desc:'Facebook ad boost',cat:'Marketing',amount:50,deductible:true,notes:''},
+  {date:'2026-03-18',desc:'Fuel - March events',cat:'Travel',amount:60,deductible:true,notes:''},
+  {date:'2026-04-05',desc:'Laptop stand',cat:'Equipment',amount:35,deductible:true,notes:''},
+  {date:'2026-04-12',desc:'Fuel - April events',cat:'Travel',amount:55,deductible:true,notes:''},
+  {date:'2026-04-20',desc:'Host dinner - team',cat:'Meals',amount:78,deductible:false,notes:'50% deductible - verify with CPA'},
+];
+const SEED_DEPOSITS = [
+  {date:'2026-04-08',venue:'Action',amount:300,received:true,notes:''},
+  {date:'2026-04-15',venue:'The Coaster',amount:150,received:true,notes:''},
+  {date:'2026-04-23',venue:'The Coaster',amount:150,received:true,notes:'Extra $50'},
+];
+
+async function seedIfEmpty() {
+  const snap = await getDocs(collection(db,'events'));
+  if (!snap.empty) return;
+  setLoad(40,'Seeding initial data...');
+  for (const e of SEED_EVENTS) await addDoc(collection(db,'events'), e);
+  for (const b of SEED_BILLS)   await addDoc(collection(db,'bills'), b);
+  for (const e of SEED_EXPENSES) await addDoc(collection(db,'expenses'), e);
+  for (const d of SEED_DEPOSITS) await addDoc(collection(db,'deposits'), d);
+}
+
+// ── CRUD ───────────────────────────────────────────────────────────────
+window.togglePaid = async (id, current) => {
+  await updateDoc(doc(db,'events',id), { paid: !current });
+  scheduleSheetsSync();
+};
+window.deleteDeposit = async id => { await deleteDoc(doc(db,'deposits',id)); scheduleSheetsSync(); };
+window.deleteBill    = async id => { await deleteDoc(doc(db,'bills',id));    scheduleSheetsSync(); };
+window.deleteExpense = async id => { await deleteDoc(doc(db,'expenses',id)); scheduleSheetsSync(); };
+
+window.addEvent = async () => {
+  const d = {
+    date: document.getElementById('ae-date').value,
+    venue: document.getElementById('ae-venue').value,
+    city: document.getElementById('ae-city').value,
+    type: document.getElementById('ae-type').value,
+    host: document.getElementById('ae-host').value,
+    tier: document.getElementById('ae-tier').options[document.getElementById('ae-tier').selectedIndex].text,
+    fee: parseFloat(document.getElementById('ae-fee').value)||150,
+    hostPay: parseFloat(document.getElementById('ae-hostpay').value)||75,
+    paid: document.getElementById('ae-paid').checked,
+    method: document.getElementById('ae-method').value,
+    check: document.getElementById('ae-check').value,
+  };
+  if (!d.date) { alert('Please enter a date'); return; }
+  await addDoc(collection(db,'events'), d);
+  evMonth = getMonth(d.date);
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-tab="events"]').classList.add('active');
+  showTab('events');
+  scheduleSheetsSync();
+};
+
+window.addDeposit = async () => {
+  const d = {
+    date: document.getElementById('dp-date').value,
+    venue: document.getElementById('dp-venue').value,
+    amount: parseFloat(document.getElementById('dp-amt').value)||0,
+    received: true,
+    notes: document.getElementById('dp-notes').value,
+  };
+  if (!d.date || !d.amount) return;
+  await addDoc(collection(db,'deposits'), d);
+  document.getElementById('dp-date').value='';
+  document.getElementById('dp-amt').value='';
+  document.getElementById('dp-notes').value='';
+  scheduleSheetsSync();
+};
+
+window.addBill = async () => {
+  const b = {
+    name: document.getElementById('bi-name').value,
+    cost: parseFloat(document.getElementById('bi-cost').value)||0,
+    due: document.getElementById('bi-due').value,
+    cat: document.getElementById('bi-cat').value,
+    notes: document.getElementById('bi-notes').value,
+  };
+  if (!b.name) return;
+  await addDoc(collection(db,'bills'), b);
+  document.getElementById('bi-name').value='';
+  document.getElementById('bi-cost').value='';
+  document.getElementById('bi-due').value='';
+  scheduleSheetsSync();
+};
+
+window.addExpense = async () => {
+  const e = {
+    date: document.getElementById('ex-date').value,
+    desc: document.getElementById('ex-desc').value,
+    cat: document.getElementById('ex-cat').value,
+    amount: parseFloat(document.getElementById('ex-amt').value)||0,
+    deductible: document.getElementById('ex-ded').checked,
+    notes: document.getElementById('ex-notes').value,
+  };
+  if (!e.desc || !e.date) return;
+  await addDoc(collection(db,'expenses'), e);
+  document.getElementById('ex-date').value='';
+  document.getElementById('ex-desc').value='';
+  document.getElementById('ex-amt').value='';
+  document.getElementById('ex-notes').value='';
+  scheduleSheetsSync();
+};
+
+// ── Form helpers ───────────────────────────────────────────────────────
+window.onVenueChange = () => {
+  const map = {Action:'Sumner','The Coaster':'Puyallup','The Forum':'Puyallup','McMillins Farm':'Puyallup'};
+  document.getElementById('ae-city').value = map[document.getElementById('ae-venue').value]||'';
+};
+window.onTierChange = () => {
+  document.getElementById('ae-hostpay').value = document.getElementById('ae-tier').value;
+};
+
+// ── Render engine ──────────────────────────────────────────────────────
+function renderAll() {
+  if (currentTab==='dashboard')    renderDashboard();
+  else if (currentTab==='events')  renderEvents();
+  else if (currentTab==='host-pay')renderHostPay();
+  else if (currentTab==='venue-income') renderVenueIncome();
+  else if (currentTab==='bills')   renderBills();
+  else if (currentTab==='expenses')renderExpenses();
+  else if (currentTab==='pl')      renderPL();
+}
+
+// DASHBOARD
+let _ic, _hc;
+function renderDashboard() {
+  const apr = events.filter(e=>getMonth(e.date)==='April 2026');
+  const mar = events.filter(e=>getMonth(e.date)==='March 2026');
+  const billsTotal = bills.reduce((s,b)=>s+b.cost,0);
+  const aprRev = apr.reduce((s,e)=>s+e.fee,0);
+  const aprHost = apr.reduce((s,e)=>s+e.hostPay,0);
+  const aprProfit = aprRev-aprHost;
+  const aprExp = expenses.filter(e=>getMonth(e.date)==='April 2026').reduce((s,e)=>s+e.amount,0);
+  const netProfit = aprProfit-billsTotal-aprExp;
+  const unpaidRev = apr.filter(e=>!e.paid).reduce((s,e)=>s+e.fee,0);
+  const unpaidHost = apr.filter(e=>!e.paid).reduce((s,e)=>s+e.hostPay,0);
+
+  document.getElementById('dash-metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">April revenue</div><div class="metric-val">${fmt(aprRev)}</div><div class="metric-sub">${apr.length} events</div></div>
+    <div class="metric"><div class="metric-label">Gross profit</div><div class="metric-val teal">${fmt(aprProfit)}</div><div class="metric-sub">after host pay</div></div>
+    <div class="metric"><div class="metric-label">Net profit</div><div class="metric-val ${netProfit>=0?'teal':'red'}">${fmt(netProfit)}</div><div class="metric-sub">after all costs</div></div>
+    <div class="metric"><div class="metric-label">Venues owe us</div><div class="metric-val ${unpaidRev>0?'amber':''}">${fmt(unpaidRev)}</div><div class="metric-sub">${apr.filter(e=>!e.paid).length} events pending</div></div>
+  `;
+
+  const alerts = document.getElementById('dash-alerts');
+  alerts.innerHTML = '';
+  if (unpaidRev>0) alerts.innerHTML += `<div class="alert alert-amber">Venues still owe you ${fmt(unpaidRev)} for ${apr.filter(e=>!e.paid).length} April events</div>`;
+  if (netProfit<0) alerts.innerHTML += `<div class="alert alert-red">April is at a net loss of ${fmt(Math.abs(netProfit))} — bills + expenses exceed gross profit</div>`;
+
+  const pct = Math.min(100, Math.round((aprProfit/(aprRev||1))*100));
+  document.getElementById('dash-snap').innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:8px;">
+      <span>Revenue: ${fmt(aprRev)}</span><span>Host pay: −${fmt(aprHost)}</span>
+      <span>Bills: −${fmtD(billsTotal)}</span><span style="color:var(--text);font-weight:600">Net: ${fmt(netProfit)}</span>
+    </div>
+    <div class="prog-wrap"><div class="prog" style="width:${pct}%"></div></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">Gross margin: ${pct}% · March gross profit: ${fmt(mar.reduce((s,e)=>s+e.fee-e.hostPay,0))}</div>
+  `;
+
+  document.getElementById('dash-unpaid').innerHTML = events.filter(e=>!e.paid).map(e=>`
+    <tr>
+      <td style="font-family:var(--mono);font-size:12px">${dt(e.date)}</td>
+      <td><span class="badge ${venueColor(e.venue)}">${e.venue}</span></td>
+      <td style="color:var(--text2)">${e.type}</td>
+      <td>${e.host}</td>
+      <td style="font-weight:600">${fmt(e.fee)}</td>
+      <td style="color:var(--text2)">${fmt(e.hostPay)}</td>
+      <td><span class="badge badge-amber">Pending</span></td>
+    </tr>
+  `).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px">All events paid ✓</td></tr>`;
+
+  // Charts
+  const monthKeys = ['January 2026','February 2026','March 2026','April 2026'];
+  const mRevs  = monthKeys.map(m=>events.filter(e=>getMonth(e.date)===m).reduce((s,e)=>s+e.fee,0));
+  const mProfs = monthKeys.map(m=>events.filter(e=>getMonth(e.date)===m).reduce((s,e)=>s+(e.fee-e.hostPay),0));
+  if (_ic) _ic.destroy();
+  _ic = new Chart(document.getElementById('incomeChart'),{
+    type:'bar',
+    data:{labels:['Jan','Feb','Mar','Apr'],datasets:[
+      {label:'Revenue',data:mRevs,backgroundColor:'rgba(28,201,138,0.25)',borderColor:'#1cc98a',borderWidth:1.5,borderRadius:4},
+      {label:'Gross profit',data:mProfs,backgroundColor:'#1cc98a',borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a65'}},
+              y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a65',callback:v=>'$'+v}}}}
+  });
+
+  const aprHosts = ['Miguel','Eddy','Ahnna'];
+  const hPays = aprHosts.map(h=>apr.filter(e=>e.host===h).reduce((s,e)=>s+e.hostPay,0));
+  if (_hc) _hc.destroy();
+  _hc = new Chart(document.getElementById('hostChart'),{
+    type:'doughnut',
+    data:{labels:aprHosts,datasets:[{data:hPays,backgroundColor:['#1cc98a','#5b9cf6','#e06bad'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{position:'bottom',labels:{color:'#9898a0',font:{size:12},padding:14,usePointStyle:true}}}}
+  });
+}
+
+// EVENTS
+function renderEvents() {
+  const ms = months();
+  document.getElementById('ev-months').innerHTML = ms.map(m=>`<button class="pill ${m===evMonth?'active':''}" onclick="evMonth='${m}';renderAll()">${m}</button>`).join('');
+  const fil = events.filter(e=>getMonth(e.date)===evMonth).sort((a,b)=>a.date.localeCompare(b.date));
+  let tF=0,tH=0;
+  document.getElementById('ev-table').innerHTML = fil.map(e=>{
+    tF+=e.fee; tH+=e.hostPay;
+    return `<tr>
+      <td style="font-family:var(--mono);font-size:12px">${dt(e.date)}</td>
+      <td><span class="badge ${venueColor(e.venue)}">${e.venue}</span></td>
+      <td style="color:var(--text3);font-size:12px">${e.city}</td>
+      <td style="color:var(--text2)">${e.type}</td>
+      <td>${e.host}</td>
+      <td><span class="badge badge-gray">${e.tier}</span></td>
+      <td style="font-weight:600">${fmt(e.fee)}</td>
+      <td style="color:var(--text2)">${fmt(e.hostPay)}</td>
+      <td style="color:${(e.fee-e.hostPay)>=100?'var(--teal)':'var(--text2)'}">${fmt(e.fee-e.hostPay)}</td>
+      <td><input type="checkbox" ${e.paid?'checked':''} onchange="togglePaid('${e.id}',${e.paid})" /></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('ev-total').innerHTML = `
+    <td colspan="6" style="color:var(--text3)">Total — ${fil.length} events</td>
+    <td style="font-weight:600">${fmt(tF)}</td><td style="font-weight:600">${fmt(tH)}</td>
+    <td style="font-weight:600;color:var(--teal)">${fmt(tF-tH)}</td><td></td>`;
+}
+
+// HOST PAY
+function renderHostPay() {
+  const apr = events.filter(e=>getMonth(e.date)==='April 2026');
+  const hosts = ['Miguel','Eddy','Ahnna'];
+  let hM='',hR='';
+  hosts.forEach(h=>{
+    const evs=apr.filter(e=>e.host===h);
+    const tot=evs.reduce((s,e)=>s+e.hostPay,0);
+    const paid=evs.filter(e=>e.paid).reduce((s,e)=>s+e.hostPay,0);
+    const bal=tot-paid;
+    hM+=`<div class="metric"><div class="metric-label">${h}</div><div class="metric-val ${bal>0?'amber':''}">${fmt(bal)}</div><div class="metric-sub">${fmt(paid)} of ${fmt(tot)} paid</div></div>`;
+    hR+=`<tr><td style="font-weight:600">${h}</td><td>${evs.length}</td><td>${fmt(tot)}</td><td>${fmt(paid)}</td>
+      <td style="font-weight:600;color:${bal>0?'var(--amber)':'var(--teal)'}">${fmt(bal)}</td>
+      <td><span class="badge badge-blue">Check</span></td></tr>`;
+  });
+  document.getElementById('hp-metrics').innerHTML=hM;
+  document.getElementById('hp-summary').innerHTML=hR;
+  document.getElementById('hp-detail').innerHTML=apr.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>`
+    <tr>
+      <td style="font-family:var(--mono);font-size:12px">${dt(e.date)}</td>
+      <td>${e.host}</td><td>${e.venue}</td>
+      <td style="color:var(--text2);font-size:12px">${e.type}</td>
+      <td style="font-weight:600">${fmt(e.hostPay)}</td>
+      <td><span class="badge badge-gray">${e.tier}</span></td>
+      <td>${e.paid?'<span class="badge badge-teal">Paid</span>':'<span class="badge badge-amber">Pending</span>'}</td>
+      <td style="font-family:var(--mono);color:var(--text3)">${e.check||'—'}</td>
+    </tr>`).join('');
+}
+
+// VENUE INCOME
+function renderVenueIncome() {
+  const apr=events.filter(e=>getMonth(e.date)==='April 2026');
+  const venues=[['Action','Sumner','End of month'],['The Coaster','Puyallup','Per gig'],['The Forum','Puyallup','Per gig'],['McMillins Farm','Puyallup','Per gig']];
+  let vM='',vR='',tF=0,tH=0;
+  venues.forEach(([venue,city,sched])=>{
+    const evs=apr.filter(e=>e.venue===venue);
+    const fee=evs.reduce((s,e)=>s+e.fee,0);
+    const hst=evs.reduce((s,e)=>s+e.hostPay,0);
+    tF+=fee;tH+=hst;
+    vM+=`<div class="metric"><div class="metric-label">${venue}</div><div class="metric-val teal">${fmt(fee-hst)}</div><div class="metric-sub">${evs.length} events · ${fmt(fee)} received</div></div>`;
+    vR+=`<tr><td style="font-weight:600">${venue}</td><td style="color:var(--text3)">${city}</td><td>${evs.length}</td>
+      <td>${fmt(fee)}</td><td style="color:var(--text2)">${fmt(hst)}</td>
+      <td style="font-weight:600;color:var(--teal)">${fmt(fee-hst)}</td>
+      <td><span class="badge ${sched==='Per gig'?'badge-teal':'badge-blue'}">${sched}</span></td></tr>`;
+  });
+  document.getElementById('vi-metrics').innerHTML=vM;
+  document.getElementById('vi-table').innerHTML=vR+`<tr class="tr-total"><td>Total</td><td></td><td>${apr.length}</td><td>${fmt(tF)}</td><td>${fmt(tH)}</td><td style="color:var(--teal)">${fmt(tF-tH)}</td><td></td></tr>`;
+  const rcvd=deposits.reduce((s,d)=>s+(d.received?d.amount:0),0);
+  document.getElementById('vi-deposits').innerHTML=deposits.sort((a,b)=>a.date.localeCompare(b.date)).map(d=>`
+    <tr>
+      <td style="font-family:var(--mono);font-size:12px">${dt(d.date)}</td>
+      <td>${d.venue}</td><td style="font-weight:600">${fmt(d.amount)}</td>
+      <td>${d.received?'<span class="badge badge-teal">Received</span>':'<span class="badge badge-amber">Pending</span>'}</td>
+      <td style="color:var(--text3);font-size:12px">${d.notes||'—'}</td>
+      <td><button class="btn btn-sm" style="font-size:11px;color:var(--text3)" onclick="deleteDeposit('${d.id}')">×</button></td>
+    </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">No deposits logged</td></tr>';
+}
+
+// BILLS
+function renderBills() {
+  const total=bills.reduce((s,b)=>s+b.cost,0);
+  const aprRev=events.filter(e=>getMonth(e.date)==='April 2026').reduce((s,e)=>s+e.fee,0);
+  const pct=Math.round((total/(aprRev||1))*100);
+  const catColors={'Karaoke Software':'badge-pink','Bingo Software':'badge-blue','Marketing':'badge-amber','Web & Hosting':'badge-teal','Finance Tools':'badge-gray','AI Tools':'badge-purple','Other':'badge-gray'};
+  document.getElementById('bi-metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Monthly total</div><div class="metric-val red">${fmtD(total)}</div><div class="metric-sub">${bills.length} services</div></div>
+    <div class="metric"><div class="metric-label">Annual cost</div><div class="metric-val">${fmt(total*12)}</div><div class="metric-sub">projected</div></div>
+    <div class="metric"><div class="metric-label">% of Apr revenue</div><div class="metric-val ${pct<20?'teal':'amber'}">${pct}%</div><div class="metric-sub">${fmt(aprRev)} revenue</div></div>
+  `;
+  document.getElementById('bi-table').innerHTML=bills.map(b=>`
+    <tr>
+      <td style="font-weight:600">${b.name}</td><td style="font-family:var(--mono)">${fmtD(b.cost)}</td>
+      <td style="color:var(--text3)">${b.due}</td>
+      <td><span class="badge ${catColors[b.cat]||'badge-gray'}">${b.cat}</span></td>
+      <td style="color:var(--text3);font-size:12px">${b.notes||'—'}</td>
+      <td><button class="btn btn-sm" style="font-size:11px;color:var(--text3)" onclick="deleteBill('${b.id}')">×</button></td>
+    </tr>`).join('');
+  document.getElementById('bi-total-val').innerHTML=`<strong style="font-family:var(--mono)">${fmtD(total)}</strong>`;
+}
+
+// EXPENSES
+function renderExpenses() {
+  const cats=['All','Equipment','Travel','Supplies','Marketing','Software','Meals','Other'];
+  document.getElementById('exp-cat-pills').innerHTML=cats.map(c=>`<button class="pill ${c===expCat?'active':''}" onclick="expCat='${c}';renderAll()">${c}</button>`).join('');
+  const fil=expCat==='All'?expenses:expenses.filter(e=>e.cat===expCat);
+  const total=fil.reduce((s,e)=>s+e.amount,0);
+  const ded=fil.filter(e=>e.deductible).reduce((s,e)=>s+e.amount,0);
+  const ytdProfit=events.reduce((s,e)=>s+(e.fee-e.hostPay),0);
+  const totalDed=expenses.filter(e=>e.deductible).reduce((s,e)=>s+e.amount,0);
+  const billsAnn=bills.reduce((s,b)=>s+b.cost,0)*12;
+  const taxable=Math.max(0,ytdProfit-totalDed-billsAnn);
+  const estTax=taxable*0.25;
+
+  document.getElementById('ex-metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Total expenses</div><div class="metric-val red">${fmt(expenses.reduce((s,e)=>s+e.amount,0))}</div><div class="metric-sub">all time</div></div>
+    <div class="metric"><div class="metric-label">Tax deductible</div><div class="metric-val teal">${fmt(totalDed)}</div><div class="metric-sub">claimable</div></div>
+    <div class="metric"><div class="metric-label">Est. taxable income</div><div class="metric-val ${taxable>0?'amber':''}">${fmt(taxable)}</div><div class="metric-sub">YTD estimate</div></div>
+    <div class="metric"><div class="metric-label">Est. tax @ 25%</div><div class="metric-val red">${fmt(estTax)}</div><div class="metric-sub">set aside</div></div>
+  `;
+  document.getElementById('ex-table').innerHTML=fil.sort((a,b)=>a.date.localeCompare(b.date)).map(e=>`
+    <tr>
+      <td style="font-family:var(--mono);font-size:12px">${dt(e.date)}</td>
+      <td style="font-weight:600">${e.desc}</td>
+      <td><span class="badge badge-gray">${e.cat}</span></td>
+      <td style="font-weight:600;color:var(--red);font-family:var(--mono)">${fmtD(e.amount)}</td>
+      <td>${e.deductible?'<span class="badge badge-teal">Yes</span>':'<span class="badge badge-red">No</span>'}</td>
+      <td style="font-size:12px;color:var(--text3)">${e.notes||'—'}</td>
+      <td><button class="btn btn-sm" style="font-size:11px;color:var(--text3)" onclick="deleteExpense('${e.id}')">×</button></td>
+    </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px">No expenses in this category</td></tr>';
+  document.getElementById('ex-total').innerHTML=`<td colspan="3">Total — ${fil.length} items</td><td style="font-weight:600;color:var(--red)">${fmtD(total)}</td><td style="color:var(--teal)">${fmt(ded)} deductible</td><td colspan="2"></td>`;
+
+  document.getElementById('ex-tax').innerHTML=`
+    <div class="pl-row"><span>YTD gross profit</span><span style="font-family:var(--mono)">${fmt(ytdProfit)}</span></div>
+    <div class="pl-row indent"><span>Deductible expenses</span><span style="font-family:var(--mono)">−${fmt(totalDed)}</span></div>
+    <div class="pl-row indent"><span>Bills annualized</span><span style="font-family:var(--mono)">−${fmt(billsAnn)}</span></div>
+    <div class="pl-row bold"><span>Estimated taxable income</span><span style="font-family:var(--mono)">${fmt(taxable)}</span></div>
+    <div class="pl-row" style="color:var(--red)"><span>Estimated tax @ 25%</span><span style="font-weight:600;font-family:var(--mono)">${fmt(estTax)}</span></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">Estimate only. Consult a CPA for your actual liability.</div>
+  `;
+}
+
+// P&L
+let _plc;
+function renderPL() {
+  const monthKeys=['January 2026','February 2026','March 2026','April 2026'];
+  const short=['Jan','Feb','Mar','Apr'];
+  const billsTotal=bills.reduce((s,b)=>s+b.cost,0);
+
+  const data=monthKeys.map(month=>{
+    const evs=events.filter(e=>getMonth(e.date)===month);
+    const rev=evs.reduce((s,e)=>s+e.fee,0);
+    const host=evs.reduce((s,e)=>s+e.hostPay,0);
+    const exp=expenses.filter(e=>getMonth(e.date)===month).reduce((s,e)=>s+e.amount,0);
+    return {rev,host,gross:rev-host,bills:billsTotal,exp,net:rev-host-billsTotal-exp};
+  });
+  const ytd={rev:data.reduce((s,d)=>s+d.rev,0),host:data.reduce((s,d)=>s+d.host,0),
+    gross:data.reduce((s,d)=>s+d.gross,0),bills:billsTotal*4,
+    exp:data.reduce((s,d)=>s+d.exp,0),net:data.reduce((s,d)=>s+d.net,0)};
+
+  document.getElementById('pl-metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">YTD revenue</div><div class="metric-val">${fmt(ytd.rev)}</div></div>
+    <div class="metric"><div class="metric-label">YTD gross profit</div><div class="metric-val teal">${fmt(ytd.gross)}</div></div>
+    <div class="metric"><div class="metric-label">YTD net profit</div><div class="metric-val ${ytd.net>=0?'teal':'red'}">${fmt(ytd.net)}</div></div>
+    <div class="metric"><div class="metric-label">Net margin</div><div class="metric-val">${ytd.rev>0?Math.round((ytd.net/ytd.rev)*100):0}%</div></div>
+  `;
+
+  const cols=[...data,ytd];
+  const cl=(v,isYTD)=>isYTD?'bold':'';
+  const mc=(v,green)=>`<div class="pl-cell ${v<0?'red':green?'teal':''}" style="font-family:var(--mono)">${fmt(v)}</div>`;
+
+  document.getElementById('pl-head-row').innerHTML=`
+    <div class="pl-head"></div>${short.map(m=>`<div class="pl-head">${m}</div>`).join('')}<div class="pl-head" style="color:var(--text)">YTD</div>`;
+
+  const rows=[
+    {label:'Revenue',section:true},
+    {label:'Venue fees received',vals:cols.map(d=>d.rev),indent:true},
+    {label:'Total revenue',vals:cols.map(d=>d.rev),bold:true,color:'teal'},
+    {label:'Cost of services',section:true},
+    {label:'Host pay',vals:cols.map(d=>d.host),indent:true,neg:true},
+    {label:'Gross profit',vals:cols.map(d=>d.gross),bold:true,color:'teal'},
+    {label:'Operating expenses',section:true},
+    {label:'Bills',vals:cols.map(d=>d.bills),indent:true,neg:true},
+    {label:'Business expenses',vals:cols.map(d=>d.exp),indent:true,neg:true},
+    {label:'Total operating expenses',vals:cols.map(d=>d.bills+d.exp),bold:true,color:'red'},
+    {label:'Net profit / loss',vals:cols.map(d=>d.net),bold:true,big:true},
+    {label:'Net margin',vals:cols.map(d=>d.rev>0?Math.round((d.net/d.rev)*100):0),pct:true},
+  ];
+
+  document.getElementById('pl-rows').innerHTML=rows.map(row=>{
+    if(row.section) return `<div class="pl-cols"><div class="pl-cell section-bg" style="grid-column:1/-1">${row.label}</div></div>`;
+    const style=row.big?'font-size:15px;font-weight:700':'';
+    const color=row.color==='teal'?'color:var(--teal)':row.color==='red'?'color:var(--red)':'';
+    return `<div class="pl-cols" style="${style}${row.bold?';font-weight:600':''}${color?';'+color:''}">
+      <div class="pl-cell${row.indent?' indent':''}${row.bold?' bold':''}">${row.label}</div>
+      ${row.vals.map((v,i)=>`<div class="pl-cell" style="font-family:var(--mono);${i===4?'color:var(--text);font-weight:600':''}">
+        ${row.pct?v+'%':fmt(v)}</div>`).join('')}
+    </div>`;
+  }).join('');
+
+  if(_plc)_plc.destroy();
+  _plc=new Chart(document.getElementById('plChart'),{
+    type:'bar',
+    data:{labels:short,datasets:[{
+      label:'Net profit',data:data.map(d=>d.net),
+      backgroundColor:data.map(d=>d.net>=0?'rgba(28,201,138,0.8)':'rgba(224,82,82,0.8)'),
+      borderRadius:4
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a65'}},
+              y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#5a5a65',callback:v=>(v<0?'-$':'$')+Math.abs(v)}}}}
+  });
+}
+
+// ── CSV Export ─────────────────────────────────────────────────────────
+window.exportCSV = (type) => {
+  let rows=[], filename='';
+  if(type==='events'){
+    filename=`events_${evMonth.replace(' ','_')}.csv`;
+    rows=[['Date','Venue','City','Type','Host','Tier','Venue Pays Us','We Pay Host','Profit','Status','Method','Check #'],
+      ...events.filter(e=>getMonth(e.date)===evMonth).sort((a,b)=>a.date.localeCompare(b.date))
+        .map(e=>[e.date,e.venue,e.city,e.type,e.host,e.tier,e.fee,e.hostPay,e.fee-e.hostPay,e.paid?'Paid':'Pending',e.method||'',e.check||''])];
+  } else if(type==='expenses'){
+    filename='expenses.csv';
+    rows=[['Date','Description','Category','Amount','Deductible','Notes'],...expenses.map(e=>[e.date,e.desc,e.cat,e.amount,e.deductible?'Yes':'No',e.notes||''])];
+  } else if(type==='pl'){
+    filename='pl_2026.csv';
+    const mks=['January 2026','February 2026','March 2026','April 2026'];
+    const billsTotal=bills.reduce((s,b)=>s+b.cost,0);
+    rows=[['','Jan','Feb','Mar','Apr','YTD']];
+    ['Revenue','Host Pay','Gross Profit','Bills','Expenses','Net Profit'].forEach((lbl,i)=>{
+      const vals=mks.map(month=>{
+        const evs=events.filter(e=>getMonth(e.date)===month);
+        if(i===0)return evs.reduce((s,e)=>s+e.fee,0);
+        if(i===1)return evs.reduce((s,e)=>s+e.hostPay,0);
+        if(i===2)return evs.reduce((s,e)=>s+e.fee-e.hostPay,0);
+        if(i===3)return billsTotal;
+        if(i===4)return expenses.filter(e=>getMonth(e.date)===month).reduce((s,e)=>s+e.amount,0);
+        if(i===5){const r=evs.reduce((s,e)=>s+e.fee,0);const h=evs.reduce((s,e)=>s+e.hostPay,0);const ex=expenses.filter(e=>getMonth(e.date)===month).reduce((s,e)=>s+e.amount,0);return r-h-billsTotal-ex;}
+      });
+      rows.push([lbl,...vals,vals.reduce((a,b)=>a+b,0)]);
+    });
+  }
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=filename;a.click();
+};
+
+// ── Tab switching ──────────────────────────────────────────────────────
+window.showTab = (t) => {
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  currentTab=t; renderAll();
+};
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    showTab(btn.dataset.tab);
+  });
+});
+window.evMonth = 'April 2026';
+window.expCat  = 'All';
+
+// ── Boot ───────────────────────────────────────────────────────────────
+async function boot() {
+  setLoad(20,'Connecting to Firebase...');
+  try {
+    await seedIfEmpty();
+    setLoad(60,'Loading your data...');
+
+    let loaded=0;
+    const onLoad=()=>{ loaded++; if(loaded>=4){ setLoad(100,'Ready!'); setTimeout(()=>{ document.getElementById('loading').style.display='none'; setSyncStatus('live','Live'); syncToSheets(); },400); } };
+
+    listenCollection('events',   v=>{ events=v;   }, onLoad);
+    listenCollection('bills',    v=>{ bills=v;    }, onLoad);
+    listenCollection('expenses', v=>{ expenses=v; }, onLoad);
+    listenCollection('deposits', v=>{ deposits=v; }, onLoad);
+  } catch(e) {
+    console.error('Boot error:',e);
+    document.getElementById('loading-msg').textContent = 'Connection failed — check Firebase config';
+    setSyncStatus('error','Disconnected');
+  }
+}
+boot();
+</script>
+</body>
+</html>
